@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儿童识字海报生成器 - Nano Banana版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* 头部 */
+        .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            font-size: 36px;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .header-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 卡片 */
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* API配置 */
+        .api-config {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #f0f4ff;
+            border-radius: 12px;
+            border: 1px solid #dbe4ff;
+        }
+
+        .api-config-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4c6ef5;
+            margin-bottom: 8px;
+        }
+
+        .api-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dbe4ff;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            font-family: monospace;
+        }
+
+        .api-input:focus {
+            border-color: #4c6ef5;
+            box-shadow: 0 0 0 3px rgba(76, 110, 245, 0.1);
+        }
+
+        /* 场景选择 */
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .scene-btn {
+            padding: 16px;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .scene-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .scene-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+        }
+
+        .scene-btn-icon {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+
+        .scene-btn-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .scene-btn-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 词汇输入 */
+        .word-section {
+            margin-top: 20px;
+        }
+
+        .word-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .word-input {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .word-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .word-input-hanzi {
+            width: 60px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .word-input-pinyin {
+            width: 100px;
+        }
+
+        .word-input-meaning {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* 词汇列表 */
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .word-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid #dbe4ff;
+        }
+
+        .word-tag-hanzi {
+            font-weight: bold;
+            font-size: 18px;
+            color: #4c6ef5;
+        }
+
+        .word-tag-pinyin {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .word-tag-remove {
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            margin-left: 4px;
+        }
+
+        .word-tag-remove:hover {
+            color: #dc2626;
+        }
+
+        .empty-tip {
+            color: #999;
+            font-size: 14px;
+            font-style: italic;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* 提示词预览 */
+        .prompt-preview {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .prompt-preview-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .prompt-text {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* 生成按钮 */
+        .generate-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-generate:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 结果展示区 */
+        .result-area {
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .result-placeholder-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .result-placeholder h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        .result-placeholder p {
+            font-size: 14px;
+            max-width: 300px;
+            line-height: 1.6;
+        }
+
+        /* 生成的图片 */
+        .generated-image-container {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .generated-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .image-action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .image-action-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .image-action-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .image-action-btn.secondary {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .image-action-btn.secondary:hover {
+            background: #e5e7eb;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        /* 状态信息 */
+        .status-info {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .status-info.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-info.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-info.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* 隐藏 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 加载动画 */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 提示 */
+        .tips {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fef3c7;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #92400e;
+            line-height: 1.5;
+        }
+
+        .tips strong {
+            color: #78350f;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <span class="header-icon">🎨</span>
+                <div>
+                    <div class="header-title">儿童识字海报生成器</div>
+                    <div class="header-subtitle">基于 Nano Banana AI 生成卡通插画海报</div>
+                </div>
+            </div>
+            <span class="header-badge">Powered by yunwu.ai</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="main-grid">
+            <!-- 左侧：配置面板 -->
+            <div class="left-panel">
+                <!-- API配置 -->
+                <div class="card">
+                    <div class="api-config" style="margin-bottom: 16px;">
+                        <div class="api-config-title">🔑 API 配置 (kie.ai)</div>
+                        <input type="password" class="api-input" id="apiKey"
+                               placeholder="请输入您的 kie.ai API Key">
+                        <button class="btn btn-sm btn-secondary" onclick="testApi()" style="margin-top: 8px;">
+                            测试连接
+                        </button>
+                        <div id="apiTestResult" style="margin-top: 8px; font-size: 13px;"></div>
+                    </div>
+
+                <!-- 场景选择 -->
+                <div class="card" style="margin-top: 16px;">
+                    <h2 class="card-title">
+                        <span>🏞️</span> 选择场景主题
+                    </h2>
+                    <div class="scene-grid" id="sceneGrid">
+                        <!-- 由JS生成 -->
+                    </div>
+                </div>
+
+                <!-- 词汇输入 -->
+                <div class="card word-section" id="wordCard" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h2 class="card-title" style="margin: 0;">
+                            <span>📝</span> 识字词汇
+                            <span style="font-size: 14px; font-weight: normal; color: #666;">
+                                (<span id="wordCount">0</span>/<span id="maxWords">8</span>)
+                            </span>
+                        </h2>
+                        <button class="btn btn-secondary btn-sm" onclick="loadPresetWords()">
+                            加载预设
+                        </button>
+                    </div>
+
+                    <div class="word-input-row">
+                        <input type="text" class="word-input word-input-hanzi" id="inputHanzi"
+                               placeholder="字" maxlength="1">
+                        <input type="text" class="word-input word-input-pinyin" id="inputPinyin"
+                               placeholder="拼音">
+                        <input type="text" class="word-input word-input-meaning" id="inputMeaning"
+                               placeholder="含义">
+                        <button class="btn btn-primary" onclick="addWord()" id="addBtn">
+                            添加
+                        </button>
+                    </div>
+
+                    <div class="word-list" id="wordList">
+                        <span class="empty-tip">还没有添加词汇</span>
+                    </div>
+
+                    <!-- 提示词预览 -->
+                    <div class="prompt-preview" id="promptPreview" style="display: none;">
+                        <div class="prompt-preview-title">🎯 将发送给 AI 的提示词</div>
+                        <div class="prompt-text" id="promptText"></div>
+                    </div>
+
+                    <!-- 生成按钮 -->
+                    <div class="generate-section" id="generateSection" style="display: none;">
+                        <button class="btn-generate" onclick="generatePoster()" id="generateBtn">
+                            <span>🎨</span> 生成卡通识字海报
+                        </button>
+                        <div class="tips">
+                            <strong>💡 提示：</strong>生成过程可能需要 10-30 秒，请耐心等待。
+                            生成的图片将严格遵循教育设计规范，包含清晰的汉字和拼音标签。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：结果展示 -->
+            <div class="right-panel">
+                <div class="card result-area">
+                    <!-- 初始状态 -->
+                    <div class="result-placeholder" id="resultPlaceholder">
+                        <div class="result-placeholder-icon">🖼️</div>
+                        <h3>准备生成海报</h3>
+                        <p>选择场景主题并添加识字词汇，AI 将为您生成一张精美的卡通识字海报插画</p>
+                    </div>
+
+                    <!-- 生成中状态 -->
+                    <div class="generating-state hidden" id="generatingState">
+                        <div class="result-placeholder">
+                            <div class="result-placeholder-icon" style="animation: pulse 2s infinite;">✨</div>
+                            <h3>正在生成海报...</h3>
+                            <div class="progress-container" style="width: 100%; max-width: 400px; margin-top: 20px;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                                </div>
+                                <div class="progress-text" id="progressText">准备中...</div>
+                            </div>
+                            <div class="status-info info" id="statusInfo" style="margin-top: 16px; max-width: 400px;">
+                                正在提交任务...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 生成的图片 -->
+                    <div class="generated-result hidden" id="generatedResult">
+                        <h2 class="card-title">
+                            <span>🎉</span> 生成完成
+                        </h2>
+                        <div class="generated-image-container">
+                            <img class="generated-image" id="generatedImage" src="" alt="生成的识字海报">
+                        </div>
+                        <div class="image-actions">
+                            <button class="image-action-btn primary" onclick="downloadImage()">
+                                💾 下载图片
+                            </button>
+                            <button class="image-action-btn secondary" onclick="generateAgain()">
+                                🔄 重新生成
+                            </button>
+                            <button class="image-action-btn secondary" onclick="backToEdit()">
+                                ✏️ 修改词汇
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 场景模板定义
+        const SCENE_TEMPLATES = {
+            library: {
+                id: 'library',
+                name: '图书馆',
+                description: '安静的图书馆',
+                bgColor: '#FFF8E7',
+                maxWords: 6,
+                icon: '📚',
+                scenePrompt: '安静的图书馆场景，书架整齐排列，柔和的灯光，温馨的阅读环境'
+            },
+            supermarket: {
+                id: 'supermarket',
+                name: '超市',
+                description: '热闹的超市',
+                bgColor: '#E8F5E9',
+                maxWords: 6,
+                icon: '🛒',
+                scenePrompt: '明亮的超市购物场景，货架上摆满商品，购物车，整洁的过道'
+            },
+            home: {
+                id: 'home',
+                name: '家里',
+                description: '温馨的家',
+                bgColor: '#FFF3E0',
+                maxWords: 6,
+                icon: '🏠',
+                scenePrompt: '温馨的现代家庭客厅，沙发、茶几、电视等家具，温暖的色调'
+            },
+            classroom: {
+                id: 'classroom',
+                name: '教室',
+                description: '明亮的教室',
+                bgColor: '#E3F2FD',
+                maxWords: 6,
+                icon: '🏫',
+                scenePrompt: '明亮的小学教室，黑板、课桌椅、窗户，整洁的学习环境'
+            },
+            park: {
+                id: 'park',
+                name: '公园',
+                description: '美丽的公园',
+                bgColor: '#F1F8E9',
+                maxWords: 6,
+                icon: '🌳',
+                scenePrompt: '美丽的城市公园，绿树、花草、小路，蓝天白云的好天气'
+            },
+            kitchen: {
+                id: 'kitchen',
+                name: '厨房',
+                description: '整洁的厨房',
+                bgColor: '#FCE4EC',
+                maxWords: 6,
+                icon: '🍳',
+                scenePrompt: '整洁的现代厨房，橱柜、灶台、厨具，明亮的照明'
+            }
+        };
+
+        // 预设词表
+        const PRESET_WORDS = {
+            library: [
+                { hanzi: '书', pinyin: 'shū', meaning: '书本' },
+                { hanzi: '桌', pinyin: 'zhuō', meaning: '桌子' },
+                { hanzi: '椅', pinyin: 'yǐ', meaning: '椅子' },
+                { hanzi: '灯', pinyin: 'dēng', meaning: '台灯' },
+                { hanzi: '架', pinyin: 'jià', meaning: '书架' },
+                { hanzi: '窗', pinyin: 'chuāng', meaning: '窗户' }
+            ],
+            supermarket: [
+                { hanzi: '果', pinyin: 'guǒ', meaning: '水果' },
+                { hanzi: '菜', pinyin: 'cài', meaning: '蔬菜' },
+                { hanzi: '车', pinyin: 'chē', meaning: '购物车' },
+                { hanzi: '包', pinyin: 'bāo', meaning: '包包' },
+                { hanzi: '钱', pinyin: 'qián', meaning: '钱币' },
+                { hanzi: '鱼', pinyin: 'yú', meaning: '鲜鱼' }
+            ],
+            home: [
+                { hanzi: '床', pinyin: 'chuáng', meaning: '床铺' },
+                { hanzi: '被', pinyin: 'bèi', meaning: '被子' },
+                { hanzi: '枕', pinyin: 'zhěn', meaning: '枕头' },
+                { hanzi: '桌', pinyin: 'zhuō', meaning: '桌子' },
+                { hanzi: '椅', pinyin: 'yǐ', meaning: '椅子' },
+                { hanzi: '门', pinyin: 'mén', meaning: '房门' }
+            ],
+            classroom: [
+                { hanzi: '板', pinyin: 'bǎn', meaning: '黑板' },
+                { hanzi: '笔', pinyin: 'bǐ', meaning: '铅笔' },
+                { hanzi: '书', pinyin: 'shū', meaning: '课本' },
+                { hanzi: '桌', pinyin: 'zhuō', meaning: '课桌' },
+                { hanzi: '椅', pinyin: 'yǐ', meaning: '椅子' },
+                { hanzi: '纸', pinyin: 'zhǐ', meaning: '纸张' }
+            ],
+            park: [
+                { hanzi: '花', pinyin: 'huā', meaning: '花朵' },
+                { hanzi: '草', pinyin: 'cǎo', meaning: '小草' },
+                { hanzi: '树', pinyin: 'shù', meaning: '大树' },
+                { hanzi: '鸟', pinyin: 'niǎo', meaning: '小鸟' },
+                { hanzi: '长', pinyin: 'cháng', meaning: '长椅' },
+                { hanzi: '路', pinyin: 'lù', meaning: '小路' }
+            ],
+            kitchen: [
+                { hanzi: '锅', pinyin: 'guō', meaning: '炒锅' },
+                { hanzi: '碗', pinyin: 'wǎn', meaning: '饭碗' },
+                { hanzi: '筷', pinyin: 'kuài', meaning: '筷子' },
+                { hanzi: '勺', pinyin: 'sháo', meaning: '勺子' },
+                { hanzi: '盘', pinyin: 'pán', meaning: '盘子' },
+                { hanzi: '水', pinyin: 'shuǐ', meaning: '水杯' }
+            ]
+        };
+
+        // 状态
+        let selectedScene = '';
+        let words = [];
+        let currentTaskId = null;
+        let generatedImageUrl = null;
+
+        // 初始化
+        function init() {
+            renderSceneButtons();
+            bindEvents();
+        }
+
+        // 渲染场景按钮
+        function renderSceneButtons() {
+            const grid = document.getElementById('sceneGrid');
+            grid.innerHTML = Object.values(SCENE_TEMPLATES).map(t => `
+                <button class="scene-btn ${selectedScene === t.id ? 'active' : ''}"
+                        onclick="selectScene('${t.id}')">
+                    <div class="scene-btn-icon">${t.icon}</div>
+                    <div class="scene-btn-name">${t.name}</div>
+                    <div class="scene-btn-desc">${t.description}</div>
+                </button>
+            `).join('');
+        }
+
+        // 选择场景
+        function selectScene(sceneId) {
+            selectedScene = sceneId;
+            words = [];
+            renderSceneButtons();
+            updateUI();
+        }
+
+        // 获取当前模板
+        function getTemplate() {
+            return SCENE_TEMPLATES[selectedScene];
+        }
+
+        // 更新UI
+        function updateUI() {
+            const template = getTemplate();
+            const wordCard = document.getElementById('wordCard');
+
+            if (template) {
+                wordCard.style.display = 'block';
+                document.getElementById('maxWords').textContent = template.maxWords;
+            } else {
+                wordCard.style.display = 'none';
+            }
+
+            updateWordList();
+            updatePromptPreview();
+            updateGenerateButton();
+        }
+
+        // 更新词汇列表
+        function updateWordList() {
+            const list = document.getElementById('wordList');
+            document.getElementById('wordCount').textContent = words.length;
+
+            if (words.length === 0) {
+                list.innerHTML = '<span class="empty-tip">还没有添加词汇，请手动添加或加载预设词表</span>';
+            } else {
+                list.innerHTML = words.map((w, i) => `
+                    <div class="word-tag">
+                        <span class="word-tag-hanzi">${w.hanzi}</span>
+                        <span class="word-tag-pinyin">${w.pinyin}</span>
+                        <span class="word-tag-remove" onclick="removeWord(${i})">×</span>
+                    </div>
+                `).join('');
+            }
+
+            const template = getTemplate();
+            const addBtn = document.getElementById('addBtn');
+            addBtn.disabled = !template || words.length >= template.maxWords;
+        }
+
+        // 加载预设词表
+        function loadPresetWords() {
+            if (selectedScene && PRESET_WORDS[selectedScene]) {
+                words = [...PRESET_WORDS[selectedScene]];
+                updateUI();
+            }
+        }
+
+        // 添加词汇
+        function addWord() {
+            const hanzi = document.getElementById('inputHanzi').value.trim();
+            const pinyin = document.getElementById('inputPinyin').value.trim();
+            const meaning = document.getElementById('inputMeaning').value.trim();
+            const template = getTemplate();
+
+            if (hanzi && pinyin && template && words.length < template.maxWords) {
+                words.push({ hanzi, pinyin, meaning });
+                document.getElementById('inputHanzi').value = '';
+                document.getElementById('inputPinyin').value = '';
+                document.getElementById('inputMeaning').value = '';
+                document.getElementById('inputHanzi').focus();
+                updateUI();
+            }
+        }
+
+        // 删除词汇
+        function removeWord(index) {
+            words.splice(index, 1);
+            updateUI();
+        }
+
+        // 构建提示词（根据 prompt.md 的设计系统）
+        function buildPrompt() {
+            const template = getTemplate();
+            if (!template || words.length === 0) return '';
+
+            const wordDescriptions = words.map(w => {
+                return `${w.meaning}(${w.hanzi} ${w.pinyin})`;
+            }).join('、');
+
+            return `Children's Chinese literacy poster illustration, flat cartoon style.
+
+Scene: ${template.scenePrompt}.
+
+Literacy objects (all must be included): ${wordDescriptions}.
+
+Requirements:
+- Flat cartoon illustration style, clean lines, light outlines
+- Bright and soft color palette, maximum 6 main colors
+- Simple background, no complex textures
+- Each literacy object must be an independent, complete, recognizable entity
+- Objects evenly distributed, not overlapping or obscured
+
+Text labels (very important):
+For each object, add a white rounded rectangle label next to it.
+First line: bold Chinese character (large font).
+Second line: pinyin in smaller gray font.
+Use a thin arrow line pointing from label to the corresponding object.
+
+Style restrictions:
+- Flat cartoon style only, NO realistic photos, NO 3D effects, NO strong shadows
+- Characters' behavior should match the scene context
+- NO exaggerated expressions or distracting elements
+- Educational poster for kindergarten and early elementary children`;
+        }
+
+        // 更新提示词预览
+        function updatePromptPreview() {
+            const prompt = buildPrompt();
+            const preview = document.getElementById('promptPreview');
+            const text = document.getElementById('promptText');
+
+            if (prompt && words.length > 0) {
+                preview.style.display = 'block';
+                text.textContent = prompt;
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // 更新生成按钮
+        function updateGenerateButton() {
+            const section = document.getElementById('generateSection');
+            if (words.length > 0) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        // 生成海报
+        async function generatePoster() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert('请先输入 yunwu.ai API Key');
+                document.getElementById('apiKey').focus();
+                return;
+            }
+
+            const prompt = buildPrompt();
+            if (!prompt) {
+                alert('请添加识字词汇');
+                return;
+            }
+
+            // 显示生成中状态
+            showGeneratingState();
+
+            try {
+                // 提交任务到 kie.ai nano-banana-pro
+                updateProgress(10, '正在提交任务...');
+                console.log('API Key:', apiKey.substring(0, 10) + '...');
+                console.log('Prompt长度:', prompt.length);
+
+                const submitRes = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'nano-banana-pro',
+                        input: {
+                            prompt: prompt,
+                            aspect_ratio: '2:3',
+                            resolution: '2K',
+                            output_format: 'png'
+                        }
+                    })
+                });
+
+                if (!submitRes.ok) {
+                    const errorText = await submitRes.text();
+                    let errorMsg = '提交任务失败';
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMsg = errorJson.msg || errorJson.message || JSON.stringify(errorJson);
+                    } catch (e) {
+                        errorMsg = errorText || `HTTP ${submitRes.status}`;
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                const submitData = await submitRes.json();
+                console.log('任务提交成功:', submitData);
+
+                if (submitData.code !== 200) {
+                    throw new Error(submitData.msg || '提交任务失败');
+                }
+
+                const taskId = submitData.data?.taskId;
+                if (!taskId) {
+                    throw new Error('API 响应异常：缺少 taskId');
+                }
+
+                // 轮询获取结果
+                await pollResult(taskId, apiKey);
+
+            } catch (error) {
+                console.error('生成失败:', error);
+                showError(error.message);
+            }
+        }
+
+        // 更新进度
+        function updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        // 显示生成中状态
+        function showGeneratingState() {
+            document.getElementById('resultPlaceholder').classList.add('hidden');
+            document.getElementById('generatedResult').classList.add('hidden');
+            document.getElementById('generatingState').classList.remove('hidden');
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').innerHTML = '<div class="spinner"></div> 生成中...';
+        }
+
+        // 显示结果
+        function showResult(imageUrl) {
+            document.getElementById('generatingState').classList.add('hidden');
+            document.getElementById('generatedResult').classList.remove('hidden');
+            document.getElementById('generatedImage').src = imageUrl;
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('generateBtn').innerHTML = '<span>🎨</span> 生成卡通识字海报';
+        }
+
+        // 显示错误
+        function showError(message) {
+            document.getElementById('generatingState').classList.remove('hidden');
+            document.getElementById('statusInfo').className = 'status-info error';
+            document.getElementById('statusInfo').textContent = '生成失败: ' + message;
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('generateBtn').innerHTML = '<span>🎨</span> 生成卡通识字海报';
+        }
+
+        // 下载图片
+        function downloadImage() {
+            if (!generatedImageUrl) return;
+            const link = document.createElement('a');
+            link.href = generatedImageUrl;
+            link.download = `识字海报_${selectedScene}_${Date.now()}.png`;
+            link.target = '_blank';
+            link.click();
+        }
+
+        // 重新生成
+        function generateAgain() {
+            generatePoster();
+        }
+
+        // 返回编辑
+        function backToEdit() {
+            document.getElementById('generatedResult').classList.add('hidden');
+            document.getElementById('resultPlaceholder').classList.remove('hidden');
+        }
+
+        // 轮询任务结果 (kie.ai 格式)
+        async function pollResult(taskId, apiKey) {
+            const maxAttempts = 60; // 最多轮询60次（约2分钟）
+            let attempts = 0;
+
+            while (attempts < maxAttempts) {
+                attempts++;
+                updateProgress(10 + Math.min(80, attempts * 1.3), `正在生成中...(${attempts}s)`);
+
+                try {
+                    const res = await fetch(`https://api.kie.ai/api/v1/jobs/recordInfo?taskId=${taskId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`
+                        }
+                    });
+
+                    if (!res.ok) {
+                        const errText = await res.text();
+                        console.error('查询状态失败:', res.status, errText);
+                        throw new Error(`查询任务状态失败: ${res.status}`);
+                    }
+
+                    const data = await res.json();
+                    console.log('任务状态:', data);
+
+                    if (data.code !== 200) {
+                        throw new Error(data.msg || '查询任务状态失败');
+                    }
+
+                    const taskData = data.data;
+                    const state = taskData.state;
+
+                    // 检查任务状态
+                    if (state === 'success') {
+                        // 解析 resultJson 获取图片URL
+                        let resultJson = taskData.resultJson;
+                        if (typeof resultJson === 'string') {
+                            resultJson = JSON.parse(resultJson);
+                        }
+
+                        const imageUrl = resultJson?.resultUrls?.[0];
+                        if (imageUrl) {
+                            generatedImageUrl = imageUrl;
+                            updateProgress(100, '生成完成！');
+                            showResult(generatedImageUrl);
+                            return;
+                        }
+                        throw new Error('API 响应中未找到图片URL');
+                    } else if (state === 'fail') {
+                        throw new Error(taskData.failMsg || '生成失败');
+                    } else if (state === 'waiting') {
+                        // 继续等待
+                    }
+
+                    // 等待2秒再查询
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                } catch (error) {
+                    console.error('轮询出错:', error);
+                    throw error;
+                }
+            }
+
+            throw new Error('生成超时，请稍后查看');
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            // 回车添加词汇
+            ['inputHanzi', 'inputPinyin', 'inputMeaning'].forEach(id => {
+                document.getElementById(id)?.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') addWord();
+                });
+            });
+        }
+
+        // 测试 API 连接 (kie.ai)
+        async function testApi() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const resultDiv = document.getElementById('apiTestResult');
+
+            if (!apiKey) {
+                resultDiv.innerHTML = '<span style="color: #ef4444;">请先输入 API Key</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<span style="color: #3b82f6;">测试中...</span>';
+
+            try {
+                const res = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'nano-banana-pro',
+                        input: {
+                            prompt: 'A simple red apple on white background',
+                            aspect_ratio: '1:1',
+                            resolution: '1K',
+                            output_format: 'png'
+                        }
+                    })
+                });
+
+                const data = await res.json();
+                console.log('API 测试响应:', data);
+
+                if (res.ok && data.code === 200) {
+                    resultDiv.innerHTML = '<span style="color: #22c55e;">✓ API 连接成功！<br>kie.ai nano-banana-pro 可用</span>';
+                } else {
+                    const errorMsg = data.msg || `HTTP ${res.status}`;
+                    resultDiv.innerHTML = `<span style="color: #ef4444;">✗ 连接失败: ${errorMsg}</span>`;
+                }
+            } catch (error) {
+                console.error('API 测试出错:', error);
+                resultDiv.innerHTML = `<span style="color: #ef4444;">✗ 请求出错: ${error.message}</span>`;
+            }
+        }
+
+        // 启动
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
